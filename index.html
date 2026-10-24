@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Availability Poll</title>
+<meta name="description" content="Find a time that works for the whole group.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f5f2ec; --surface:#fffdf8; --ink:#1c1b19; --muted:#6c675e;
+  --line:#e4ded2; --line-strong:#cfc7b8;
+  --accent:#1e6a55; --accent-ink:#ffffff; --accent-soft:#e1eee8;
+  --cell:#ece7dc; --danger:#b23b2a; --warn:#9a6a12;
+  --radius:14px;
+  --shadow:0 1px 0 rgba(0,0,0,.03), 0 10px 28px -18px rgba(40,30,10,.28);
+  --serif:"Fraunces", Georgia, "Times New Roman", serif;
+  --sans:Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#131311; --surface:#1b1b18; --ink:#ece8df; --muted:#a29d92;
+    --line:#2c2b27; --line-strong:#3d3b35;
+    --accent:#5ec29f; --accent-ink:#0d1a15; --accent-soft:#1d3a30;
+    --cell:#272621; --danger:#e48068; --warn:#d9a441;
+    --shadow:0 1px 0 rgba(0,0,0,.2);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+[hidden]{display:none !important}
+
+.top{max-width:1120px;margin:0 auto;padding:18px 16px 0;display:flex;align-items:center;justify-content:space-between}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:600;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
+.mark{width:20px;height:20px;border-radius:4px;background:
+  linear-gradient(var(--accent),var(--accent)) 0 0/9px 9px no-repeat,
+  linear-gradient(var(--accent),var(--accent)) 11px 11px/9px 9px no-repeat,
+  linear-gradient(var(--accent-soft),var(--accent-soft)) 11px 0/9px 9px no-repeat,
+  linear-gradient(var(--line-strong),var(--line-strong)) 0 11px/9px 9px no-repeat}
+.newlink{font-size:14px;font-weight:500;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 16px 72px}
+
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,42px);line-height:1.08;letter-spacing:-.02em;margin:0 0 10px}
+h2{font-size:15px;font-weight:600;margin:0;letter-spacing:-.005em}
+h3{font-size:13px;font-weight:600;margin:16px 0 8px;color:var(--muted)}
+.lede{color:var(--muted);max-width:62ch;margin:0 0 18px;font-size:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+
+.lbl{display:block;font-size:13px;font-weight:500;margin:14px 0 6px}
+.opt{color:var(--muted);font-weight:400}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line-strong);border-radius:10px;padding:9px 11px}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in oklab,var(--accent) 55%,transparent);outline-offset:1px;border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:600;border-radius:10px;padding:10px 16px;border:1px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border-color:var(--line-strong);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--accent)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:13px;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.err{color:var(--danger);font-size:14px;margin:10px 0 0}
+.err:empty{display:none}
+.hint{color:var(--muted);font-size:13px;margin:6px 0 0}
+.muted{color:var(--muted)}
+
+/* create view */
+.create-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:36px}
+@media (max-width:760px){.create-grid{grid-template-columns:1fr;gap:20px}}
+.create .lbl:first-child{margin-top:0}
+.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:600}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:18px;line-height:1;cursor:pointer}
+.iconbtn:hover{border-color:var(--accent)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;user-select:none;-webkit-user-select:none}
+.dow{font-size:11px;color:var(--muted);text-align:center;padding:4px 0;font-weight:600}
+.day{aspect-ratio:1;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;cursor:pointer}
+.day:hover{background:var(--cell)}
+.day.today{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.day.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.day:disabled{color:var(--line-strong);cursor:default;background:transparent}
+.calfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.calfoot .acts{display:flex;gap:14px}
+.create .btn.primary{margin-top:18px;width:100%}
+.created{margin-top:20px;border-color:var(--accent)}
+.linkrow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.linkrow input{flex:1 1 260px;min-width:0;font-size:13px}
+.sect{margin:28px 0 10px}
+.recent{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.recent li{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:14px}
+.recent li span{color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* poll view */
+.pollhead{margin-bottom:18px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:13px;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.chip.warn{border-color:color-mix(in oklab,var(--warn) 45%,transparent);color:var(--warn)}
+.banner{padding:10px 14px;border-radius:12px;font-size:14px;margin-bottom:16px;border:1px solid color-mix(in oklab,var(--warn) 40%,transparent);background:color-mix(in oklab,var(--warn) 10%,var(--surface))}
+.banner.error{border-color:color-mix(in oklab,var(--danger) 45%,transparent);background:color-mix(in oklab,var(--danger) 10%,var(--surface))}
+.banner code{font-size:13px}
+.who{margin-bottom:20px}
+.signin{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:12px;align-items:end}
+.signin .lbl{margin-top:0}
+.signin .err{grid-column:1/-1;margin:0}
+@media (max-width:640px){.signin{grid-template-columns:1fr}}
+.signed{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.signed .muted{margin-left:6px;font-size:14px}
+
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:20px;align-items:start}
+.panels.lower{margin-top:20px}
+.phead{display:flex;align-items:baseline;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;margin-bottom:14px}
+.phead .hint{margin:0}
+.gridwrap{position:relative}
+.scroller{overflow-x:auto;padding-bottom:4px}
+.grid{display:grid;grid-template-columns:58px repeat(var(--days),minmax(42px,1fr));column-gap:4px;user-select:none;-webkit-user-select:none}
+.corner{position:sticky;left:0;background:var(--surface);z-index:2}
+.dh{text-align:center;padding-bottom:8px;line-height:1.2}
+.dw{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.dd{display:block;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tl{font-size:11px;color:var(--muted);text-align:right;padding-right:8px;line-height:1;position:sticky;left:0;background:var(--surface);z-index:2;font-variant-numeric:tabular-nums;white-space:nowrap;transform:translateY(-2px)}
+.cell{height:18px;background:var(--cell);border-top:1px solid var(--surface);position:relative}
+.cell.hr{border-top-color:var(--line-strong)}
+.cell.first{border-top:0;border-radius:6px 6px 0 0}
+.cell.last{border-radius:0 0 6px 6px}
+.mine .cell{cursor:pointer;touch-action:none}
+.mine .cell:hover{box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--accent) 55%,transparent)}
+.mine .cell.on{background:var(--accent)}
+.heat .cell::after{content:"";position:absolute;inset:0;background:var(--accent);opacity:calc(var(--p,0) / 100);border-radius:inherit}
+.heat .cell.hl{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
+.heat .cell:hover{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
+.lockmsg{display:none;position:absolute;inset:0;align-items:center;justify-content:center;pointer-events:none;padding:16px;text-align:center}
+.lockmsg span{background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:var(--shadow)}
+.locked .grid{opacity:.35;pointer-events:none}
+.locked .lockmsg{display:flex}
+.locked .savebar{visibility:hidden}
+.savebar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;font-size:13px;color:var(--muted);min-height:22px}
+.status.ok::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:7px;vertical-align:1px}
+.status.bad{color:var(--danger)}
+.status .linkbtn{margin-left:6px}
+.savebar > .linkbtn{white-space:nowrap}
+.legend{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend .bar{width:72px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--cell),var(--accent))}
+.inspect{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--bg);font-size:13px;min-height:76px}
+.inspect .ir{margin-top:6px}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;margin-right:6px}
+.tag.yes{background:var(--accent-soft);color:var(--accent)}
+.tag.no{background:color-mix(in oklab,var(--danger) 14%,transparent);color:var(--danger)}
+.tag.wait{background:var(--cell);color:var(--muted)}
+
+.best{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.bestitem{width:100%;text-align:left;display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.bestitem:hover,.bestitem:focus-visible{border-color:var(--accent);outline:none}
+.score{font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.score.all{color:var(--accent)}
+.miss{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px}
+.count{font-size:14px;margin:10px 0;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.pchip{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.pchip.me{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.pchip.wait{background:var(--cell);color:var(--muted)}
+.sharerow{margin-top:18px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./"><span class="mark" aria-hidden="true"></span>Availability Poll</a>
+  <a class="newlink" id="newLink" href="./" hidden>New poll</a>
+</header>
+<main class="wrap" id="app"></main>
+<noscript><p class="wrap">This page needs JavaScript.</p></noscript>
+
+<script>
+// ================== Settings ==================
+// Paste your Google Apps Script web app URL (it ends in /exec) between the quotes.
+// While this is empty the page runs in demo mode and keeps responses in this browser only.
+const SCRIPT_URL = "";
+// ==============================================
+
+const RECENT_KEY = "availability-poll:recent";
+const ME_KEY = "availability-poll:me";
+const dataKey = id => "availability-poll:data:" + id;
+
+const app = document.getElementById("app");
+const $ = (sel, root = document) => root.querySelector(sel);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
+};
+
+// ---------- email matching ----------
+// A respondent is identified by their email address, compared as a lowercased, trimmed string.
+const EMAIL_RE = /^[^\s@<>(),;:"'=+\-][^\s@<>(),;:"']*@[^\s@<>(),;:"']+\.[a-z]{2,}$/i;
+const EMAIL_FIND_RE = /[^\s@<>(),;:"'\[\]]+@[^\s@<>(),;:"'\[\]]+\.[a-z]{2,}/gi;
+const normEmail = s => String(s || "").trim().toLowerCase();
+const extractEmails = text => [...new Set((String(text).match(EMAIL_FIND_RE) || []).map(normEmail).filter(e => EMAIL_RE.test(e)))];
+
+// ---------- time and date ----------
+const pad = n => String(n).padStart(2, "0");
+const toMin = t => { const [h, m] = String(t).split(":").map(Number); return h * 60 + (m || 0); };
+const toHHMM = m => pad(Math.floor(m / 60)) + ":" + pad(m % 60);
+const clock = m => new Date(2000, 0, 1, Math.floor(m / 60), m % 60).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const hourLabel = m => m % 60 === 0 ? new Date(2000, 0, 1, m / 60).toLocaleTimeString([], { hour: "numeric" }) : clock(m);
+const parseDay = s => { const [y, mo, d] = s.split("-").map(Number); return new Date(y, mo - 1, d); };
+const dayKey = dt => dt.getFullYear() + "-" + pad(dt.getMonth() + 1) + "-" + pad(dt.getDate());
+const fmtDay = (s, opts) => parseDay(s).toLocaleDateString([], opts || { weekday: "short", month: "short", day: "numeric" });
+const durLabel = m => m < 60 ? m + " min" : (+(m / 60).toFixed(2)) + " hr";
+
+// ---------- poll links ----------
+// The whole poll definition travels in the link (?e=...), so no setup is needed per poll.
+function encodeEvent(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = ""; bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function decodeEvent(str) {
+  let s = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s);
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+}
+function hash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+const slug = s => String(s).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/['\u2019]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (x) {} t.remove(); }
+  const old = btn.textContent; btn.textContent = "Copied"; setTimeout(() => { btn.textContent = old; }, 1500);
+}
+
+// ---------- storage backend ----------
+const api = {
+  async load(eventId) {
+    if (!SCRIPT_URL) return store.get(dataKey(eventId), []);
+    const r = await fetch(SCRIPT_URL + "?event=" + encodeURIComponent(eventId), { cache: "no-store" });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "Load failed");
+    return j.responses || [];
+  },
+  async save(p) {
+    if (!SCRIPT_URL) {
+      const all = store.get(dataKey(p.event), []);
+      const row = { email: p.email, name: p.name, slots: p.slots, updated: new Date().toISOString() };
+      const i = all.findIndex(x => normEmail(x.email) === p.email);
+      if (i >= 0) all[i] = row; else all.push(row);
+      store.set(dataKey(p.event), all);
+      return;
+    }
+    // text/plain body keeps this a "simple" request, which Apps Script accepts without a CORS preflight
+    const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(p) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "Save failed");
+  }
+};
+
+// =====================================================================
+// Create view
+// =====================================================================
+function renderCreate() {
+  document.title = "New availability poll";
+  const selected = new Set();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let viewMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || "";
+
+  app.innerHTML = `
+  <section>
+    <h1>Find a time that works for the whole group</h1>
+    <p class="lede">Pick the candidate days and hours, share the link, and everyone marks when they're free. Each person is matched by their email address, so they can come back and change their answers.</p>
+  </section>
+  <form class="card create" id="createForm" novalidate>
+    <div class="create-grid">
+      <div>
+        <span class="lbl">Candidate days</span>
+        <div class="calhead">
+          <button type="button" class="iconbtn" id="prevM" aria-label="Previous month">&#8249;</button>
+          <div id="monthLabel"></div>
+          <button type="button" class="iconbtn" id="nextM" aria-label="Next month">&#8250;</button>
+        </div>
+        <div class="cal" id="cal"></div>
+        <div class="calfoot">
+          <span id="dayCount">No days selected</span>
+          <span class="acts"><button type="button" class="linkbtn" id="quick">Weekdays, next 2 weeks</button><button type="button" class="linkbtn" id="clearDays">Clear</button></span>
+        </div>
+      </div>
+      <div>
+        <label class="lbl" for="fTitle">Event name</label>
+        <input id="fTitle" placeholder="Sarah's Advancement" maxlength="120" autocomplete="off">
+        <label class="lbl" for="fDesc">Details <span class="opt">optional</span></label>
+        <textarea id="fDesc" rows="2" maxlength="500" placeholder="Advancement to candidacy, about 2 hours. Room to be booked once we pick a time."></textarea>
+        <div class="row2">
+          <div><label class="lbl" for="fStart">Earliest start</label><select id="fStart"></select></div>
+          <div><label class="lbl" for="fEnd">Latest end</label><select id="fEnd"></select></div>
+        </div>
+        <div class="row2">
+          <div><label class="lbl" for="fStep">Slot size</label><select id="fStep"><option value="15">15 min</option><option value="30" selected>30 min</option><option value="60">60 min</option></select></div>
+          <div><label class="lbl" for="fDur">Meeting length</label><select id="fDur"></select></div>
+        </div>
+        <label class="lbl" for="fTz">Time zone</label>
+        <input id="fTz" value="${esc(tz)}" autocomplete="off">
+        <label class="lbl" for="fInv">Invited emails <span class="opt">optional</span></label>
+        <textarea id="fInv" rows="3" placeholder="Paste addresses in any format, e.g.&#10;Sarah Lee <slee@university.edu>, kim.j@university.edu"></textarea>
+        <p class="hint" id="invCount">Anyone with the link can respond.</p>
+        <p class="err" id="createErr" role="alert"></p>
+        <button class="btn primary" type="submit">Create poll</button>
+      </div>
+    </div>
+  </form>
+  <section class="card created" id="created" hidden></section>
+  <section id="recent"></section>`;
+
+  const timeOpts = (from, to, sel) => {
+    let h = "";
+    for (let m = from; m <= to; m += 30) h += `<option value="${m}"${m === sel ? " selected" : ""}>${m === 1440 ? "Midnight" : clock(m)}</option>`;
+    return h;
+  };
+  $("#fStart").innerHTML = timeOpts(0, 1410, 540);
+  $("#fEnd").innerHTML = timeOpts(30, 1440, 1020);
+  $("#fDur").innerHTML = [30, 60, 90, 120, 150, 180, 240].map(m => `<option value="${m}"${m === 120 ? " selected" : ""}>${durLabel(m)}</option>`).join("");
+
+  const cal = $("#cal");
+  function updateCount() {
+    $("#dayCount").textContent = selected.size ? `${selected.size} day${selected.size > 1 ? "s" : ""} selected` : "No days selected";
+  }
+  function drawCal() {
+    $("#monthLabel").textContent = viewMonth.toLocaleDateString([], { month: "long", year: "numeric" });
+    const y = viewMonth.getFullYear(), mo = viewMonth.getMonth();
+    const lead = new Date(y, mo, 1).getDay();
+    const dim = new Date(y, mo + 1, 0).getDate();
+    let h = ["S", "M", "T", "W", "T", "F", "S"].map(d => `<div class="dow">${d}</div>`).join("");
+    for (let i = 0; i < lead; i++) h += "<div></div>";
+    for (let d = 1; d <= dim; d++) {
+      const dt = new Date(y, mo, d), k = dayKey(dt), on = selected.has(k);
+      h += `<button type="button" class="day${on ? " on" : ""}${+dt === +today ? " today" : ""}" data-k="${k}" aria-pressed="${on}" aria-label="${dt.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}"${dt < today ? " disabled" : ""}>${d}</button>`;
+    }
+    cal.innerHTML = h;
+    $("#prevM").disabled = y === today.getFullYear() && mo === today.getMonth();
+    updateCount();
+  }
+  function setDay(btn, on) {
+    const k = btn.dataset.k;
+    if (on) selected.add(k); else selected.delete(k);
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", on);
+  }
+  // Mouse: press and drag across days. Touch and keyboard: tap or press to toggle.
+  let dragMode = null, suppressClick = false;
+  cal.addEventListener("pointerdown", e => {
+    const b = e.target.closest(".day");
+    if (!b || b.disabled || e.pointerType === "touch" || e.button !== 0) return;
+    e.preventDefault();
+    suppressClick = true;
+    dragMode = !selected.has(b.dataset.k);
+    setDay(b, dragMode);
+    cal.setPointerCapture(e.pointerId);
+  });
+  cal.addEventListener("pointermove", e => {
+    if (dragMode === null) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const b = el && el.closest ? el.closest(".day") : null;
+    if (b && !b.disabled && cal.contains(b) && selected.has(b.dataset.k) !== dragMode) setDay(b, dragMode);
+  });
+  const endDrag = () => { if (dragMode !== null) { dragMode = null; updateCount(); } };
+  cal.addEventListener("pointerup", endDrag);
+  cal.addEventListener("pointercancel", endDrag);
+  cal.addEventListener("click", e => {
+    if (suppressClick) { suppressClick = false; return; }
+    const b = e.target.closest(".day");
+    if (!b || b.disabled) return;
+    setDay(b, !selected.has(b.dataset.k));
+    updateCount();
+  });
+
+  $("#prevM").onclick = () => { viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1); drawCal(); };
+  $("#nextM").onclick = () => { viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1); drawCal(); };
+  $("#clearDays").onclick = () => { selected.clear(); drawCal(); };
+  $("#quick").onclick = () => {
+    for (let i = 0; i < 14; i++) {
+      const dt = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+      if (dt.getDay() > 0 && dt.getDay() < 6) selected.add(dayKey(dt));
+    }
+    drawCal();
+  };
+
+  $("#fInv").addEventListener("input", () => {
+    const n = extractEmails($("#fInv").value).length;
+    $("#invCount").textContent = n ? `${n} address${n > 1 ? "es" : ""} found. Only these can respond.` : "Anyone with the link can respond.";
+  });
+
+  $("#createForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const err = msg => { $("#createErr").textContent = msg; };
+    const title = $("#fTitle").value.trim();
+    const s = +$("#fStart").value, en = +$("#fEnd").value, st = +$("#fStep").value, du = +$("#fDur").value;
+    if (!title) return err("Give the event a name.");
+    if (!selected.size) return err("Select at least one day on the calendar.");
+    if (en <= s) return err("The latest end has to be after the earliest start.");
+    if (du > en - s) return err(`A ${durLabel(du)} meeting doesn't fit between ${clock(s)} and ${en === 1440 ? "midnight" : clock(en)}.`);
+    err("");
+    const ev = { v: 1, t: title, days: [...selected].sort(), s: toHHMM(s), e: toHHMM(en), st, du, n: Math.random().toString(36).slice(2, 8) };
+    const desc = $("#fDesc").value.trim(); if (desc) ev.d = desc;
+    const tzv = $("#fTz").value.trim(); if (tzv) ev.tz = tzv;
+    const inv = extractEmails($("#fInv").value); if (inv.length) ev.inv = inv;
+    const url = location.origin + location.pathname + "?e=" + encodeEvent(ev);
+
+    const recent = store.get(RECENT_KEY, []).filter(r => r.url !== url);
+    recent.unshift({ title, url, created: Date.now() });
+    store.set(RECENT_KEY, recent.slice(0, 12));
+
+    const box = $("#created");
+    box.hidden = false;
+    box.innerHTML = `<h2>${esc(title)} is ready</h2>
+      <p class="hint">Send this link to the group. Everyone opens it, enters their email, and marks when they're free.</p>
+      <div class="linkrow"><input id="pollUrl" readonly value="${esc(url)}"><button class="btn ghost" type="button" id="copyUrl">Copy link</button><a class="btn primary" href="${esc(url)}">Open poll</a></div>`;
+    $("#copyUrl").onclick = () => copyText(url, $("#copyUrl"));
+    $("#pollUrl").onfocus = ev2 => ev2.target.select();
+    box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    drawRecent();
+  });
+
+  function drawRecent() {
+    const list = store.get(RECENT_KEY, []);
+    $("#recent").innerHTML = list.length ? `<h2 class="sect">Polls you've made on this device</h2>
+      <ul class="recent">${list.map(r => `<li><a href="${esc(r.url)}">${esc(r.title)}</a><span>${new Date(r.created).toLocaleDateString([], { month: "short", day: "numeric" })}</span></li>`).join("")}</ul>` : "";
+  }
+
+  drawCal();
+  drawRecent();
+}
+
+// =====================================================================
+// Poll view
+// =====================================================================
+function renderPoll(enc) {
+  let ev;
+  try {
+    ev = decodeEvent(enc);
+    if (!ev || !ev.t || !Array.isArray(ev.days) || !ev.days.length || !ev.s || !ev.e) throw new Error("bad");
+  } catch (e) {
+    app.innerHTML = `<div class="card"><h1>That link doesn't open a poll</h1><p class="lede">It may have been cut off when it was copied. Ask the organizer to send it again, or <a href="./">create a new poll</a>.</p></div>`;
+    return;
+  }
+  document.title = ev.t + " | Availability Poll";
+  $("#newLink").hidden = false;
+
+  const eventId = (slug(ev.t) || "poll") + "-" + hash(enc);
+  const days = [...ev.days].sort();
+  const step = [15, 30, 60].includes(+ev.st) ? +ev.st : 30;
+  const startM = toMin(ev.s), endM = toMin(ev.e);
+  const times = [];
+  for (let m = startM; m + step <= endM; m += step) times.push(m);
+  const dur = +ev.du || step;
+  const winLen = Math.max(1, Math.ceil(dur / step));
+  const invited = Array.isArray(ev.inv) ? ev.inv.map(normEmail).filter(x => EMAIL_RE.test(x)) : [];
+  const keys = days.map(d => times.map(m => d + "T" + toHHMM(m)));
+  const localTz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || "";
+
+  const range = days.length === 1
+    ? fmtDay(days[0], { weekday: "long", month: "long", day: "numeric" })
+    : `${days.length} days, ${fmtDay(days[0], { month: "short", day: "numeric" })} to ${fmtDay(days[days.length - 1], { month: "short", day: "numeric" })}`;
+  const tzOff = ev.tz && localTz && localTz !== ev.tz;
+
+  app.innerHTML = `
+  <section class="pollhead">
+    <h1>${esc(ev.t)}</h1>
+    ${ev.d ? `<p class="lede">${esc(ev.d)}</p>` : ""}
+    <div class="meta">
+      <span class="chip">${esc(range)}</span>
+      <span class="chip">${clock(startM)} to ${endM === 1440 ? "midnight" : clock(endM)}</span>
+      <span class="chip">${durLabel(dur)} meeting</span>
+      ${ev.tz ? `<span class="chip${tzOff ? " warn" : ""}">Times in ${esc(ev.tz)}${tzOff ? ", not your local zone" : ""}</span>` : ""}
+    </div>
+  </section>
+  ${SCRIPT_URL ? "" : `<div class="banner">Demo mode: responses are saved only in this browser. Paste your Apps Script URL into <code>SCRIPT_URL</code> in index.html so the whole group shares one set of answers.</div>`}
+  <div class="banner error" id="loadErr" hidden>Couldn't reach the response sheet. Check that <code>SCRIPT_URL</code> is the web app URL ending in <code>/exec</code> and that the deployment's access is set to Anyone.</div>
+  <section class="card who" id="who"></section>
+  <div class="panels">
+    <section class="card panel locked" id="minePanel">
+      <div class="phead"><h2>Your availability</h2><span class="hint">Click or drag to mark when you're free. Start on a marked slot to erase.</span></div>
+      <div class="gridwrap">
+        <div class="scroller"><div class="grid mine" id="mineGrid"></div></div>
+        <div class="lockmsg"><span>Enter your email above to mark your times</span></div>
+      </div>
+      <div class="savebar"><span class="status" id="status" aria-live="polite"></span><button class="linkbtn" type="button" id="clearMine">Clear mine</button></div>
+    </section>
+    <section class="card panel" id="heatPanel">
+      <div class="phead"><h2>Group availability</h2><span class="legend"><span>0</span><span class="bar"></span><span id="legendMax">0</span>&nbsp;free</span></div>
+      <div class="scroller"><div class="grid heat" id="heatGrid"></div></div>
+      <div class="inspect" id="inspect"><span class="muted">Hover over or tap a slot to see who's free.</span></div>
+    </section>
+  </div>
+  <div class="panels lower">
+    <section class="card">
+      <h2>Best times</h2>
+      <p class="hint">${durLabel(dur)} windows, ranked by how many people can make the whole thing.</p>
+      <ol class="best" id="best"></ol>
+    </section>
+    <section class="card">
+      <h2>Responses</h2>
+      <div id="people"></div>
+      <div class="sharerow"><button class="btn ghost" type="button" id="copyPoll">Copy poll link</button></div>
+    </section>
+  </div>`;
+
+  if (!times.length) { $("#who").innerHTML = `<p class="err">This poll has no time slots.</p>`; return; }
+
+  const who = $("#who"), minePanel = $("#minePanel"), mineGrid = $("#mineGrid"), heatGrid = $("#heatGrid");
+  const statusEl = $("#status"), inspectEl = $("#inspect");
+  $("#copyPoll").onclick = () => copyText(location.href, $("#copyPoll"));
+
+  let responses = [], me = null, mine = new Set(), hasSaved = false;
+  let people = [], total = 0;
+
+  // ---- grids ----
+  function buildGrid(el) {
+    el.style.setProperty("--days", days.length);
+    let h = `<div class="corner"></div>`;
+    days.forEach(d => {
+      const dt = parseDay(d);
+      h += `<div class="dh"><span class="dw">${dt.toLocaleDateString([], { weekday: "short" })}</span><span class="dd">${dt.toLocaleDateString([], { month: "short", day: "numeric" })}</span></div>`;
+    });
+    times.forEach((m, si) => {
+      const onHour = m % 60 === 0;
+      h += `<div class="tl">${onHour || si === 0 ? hourLabel(m) : ""}</div>`;
+      days.forEach((d, di) => {
+        let cls = "cell";
+        if (si === 0) cls += " first"; else if (onHour) cls += " hr";
+        if (si === times.length - 1) cls += " last";
+        h += `<div class="${cls}" data-d="${di}" data-s="${si}"></div>`;
+      });
+    });
+    el.innerHTML = h;
+    return [...el.querySelectorAll(".cell")];
+  }
+  const mineCells = buildGrid(mineGrid);
+  const heatCells = buildGrid(heatGrid);
+  const keyOf = c => keys[c.dataset.d][c.dataset.s];
+  const heatAt = (di, si) => heatCells[si * days.length + di];
+
+  function drawMine() { mineCells.forEach(c => c.classList.toggle("on", mine.has(keyOf(c)))); }
+
+  // ---- group data ----
+  const nameText = p => p.name || p.email.split("@")[0];
+  const nameOf = p => esc(nameText(p)) + (p.isMe ? " (you)" : "");
+  function compute() {
+    const list = [];
+    for (const r of responses) {
+      const email = normEmail(r.email);
+      if (me && email === me.email) continue;
+      list.push({ email, name: r.name || "", set: new Set(r.slots || []) });
+    }
+    if (me && (mine.size || hasSaved)) list.push({ email: me.email, name: me.name, set: new Set(mine), isMe: true });
+    list.sort((a, b) => nameText(a).localeCompare(nameText(b)));
+    people = list;
+    total = invited.length ? Math.max(invited.length, list.length) : list.length;
+  }
+  const noReply = () => invited.filter(e => !people.some(p => p.email === e));
+
+  function drawHeat() {
+    $("#legendMax").textContent = total;
+    heatCells.forEach(c => {
+      const k = keyOf(c);
+      let n = 0;
+      for (const p of people) if (p.set.has(k)) n++;
+      c.style.setProperty("--p", total ? Math.round(n / total * 100) : 0);
+    });
+  }
+
+  function inspect(di, si) {
+    const k = keys[di][si];
+    const yes = people.filter(p => p.set.has(k)), no = people.filter(p => !p.set.has(k)), wait = noReply();
+    inspectEl.innerHTML = `<div><strong>${fmtDay(days[di], { weekday: "long", month: "short", day: "numeric" })}</strong>, ${clock(times[si])} to ${clock(times[si] + step)}</div>
+      <div class="ir"><span class="tag yes">${yes.length} free</span>${yes.length ? yes.map(nameOf).join(", ") : "Nobody yet"}</div>
+      ${no.length ? `<div class="ir"><span class="tag no">${no.length} busy</span>${no.map(nameOf).join(", ")}</div>` : ""}
+      ${wait.length ? `<div class="ir"><span class="tag wait">${wait.length} no reply</span>${wait.map(esc).join(", ")}</div>` : ""}`;
+  }
+  heatGrid.addEventListener("pointerover", e => { const c = e.target.closest(".cell"); if (c) inspect(+c.dataset.d, +c.dataset.s); });
+
+  function highlight(di, si) {
+    heatCells.forEach(c => c.classList.remove("hl"));
+    if (di == null) return;
+    for (let j = 0; j < winLen; j++) heatAt(di, si + j).classList.add("hl");
+  }
+
+  function drawBest() {
+    const el = $("#best");
+    if (!people.length) { el.innerHTML = `<li class="empty">Rankings show up once people respond.</li>`; return; }
+    const cands = [];
+    days.forEach((d, di) => {
+      for (let si = 0; si + winLen <= times.length; si++) {
+        const ok = people.filter(p => { for (let j = 0; j < winLen; j++) if (!p.set.has(keys[di][si + j])) return false; return true; });
+        if (ok.length) cands.push({ di, si, ok });
+      }
+    });
+    cands.sort((a, b) => b.ok.length - a.ok.length || a.di - b.di || a.si - b.si);
+    const picked = [];
+    for (const c of cands) {
+      if (picked.some(p => p.di === c.di && Math.abs(p.si - c.si) < winLen)) continue;
+      picked.push(c);
+      if (picked.length === 5) break;
+    }
+    if (!picked.length) { el.innerHTML = `<li class="empty">No ${durLabel(dur)} window works for anyone yet.</li>`; return; }
+    const waiting = noReply().length;
+    el.innerHTML = picked.map(c => {
+      const busy = people.filter(p => !c.ok.includes(p));
+      const start = times[c.si], end = start + winLen * step;
+      let miss = busy.length ? "Can't make it: " + busy.map(nameOf).join(", ") : (waiting ? "Everyone who replied can make it" : "Everyone can make it");
+      if (waiting) miss += ` &middot; ${waiting} not replied yet`;
+      return `<li><button type="button" class="bestitem" data-di="${c.di}" data-si="${c.si}">
+        <span><strong>${fmtDay(days[c.di])}</strong>, ${clock(start)} to ${clock(end)}</span>
+        <span class="score${c.ok.length === total ? " all" : ""}">${c.ok.length}/${total}</span>
+        <span class="miss">${miss}</span></button></li>`;
+    }).join("");
+  }
+  const bestEl = $("#best");
+  bestEl.addEventListener("pointerover", e => { const b = e.target.closest(".bestitem"); if (b) highlight(+b.dataset.di, +b.dataset.si); });
+  bestEl.addEventListener("pointerleave", () => highlight(null));
+  bestEl.addEventListener("focusin", e => { const b = e.target.closest(".bestitem"); if (b) highlight(+b.dataset.di, +b.dataset.si); });
+  bestEl.addEventListener("focusout", () => highlight(null));
+  bestEl.addEventListener("click", e => {
+    const b = e.target.closest(".bestitem"); if (!b) return;
+    highlight(+b.dataset.di, +b.dataset.si);
+    inspect(+b.dataset.di, +b.dataset.si);
+    $("#heatPanel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  function drawPeople() {
+    const wait = noReply();
+    let h = invited.length
+      ? `<p class="count">${invited.length - wait.length} of ${invited.length} invited have replied</p>`
+      : `<p class="count">${people.length} ${people.length === 1 ? "person has" : "people have"} replied</p>`;
+    if (people.length) h += `<div class="chips">${people.map(p => `<span class="pchip${p.isMe ? " me" : ""}" title="${esc(p.email)}">${nameOf(p)}</span>`).join("")}</div>`;
+    if (wait.length) h += `<h3>Waiting on</h3><div class="chips">${wait.map(e => `<span class="pchip wait">${esc(e)}</span>`).join("")}</div>`;
+    $("#people").innerHTML = h;
+  }
+
+  function refreshGroup() { compute(); drawHeat(); drawBest(); drawPeople(); }
+
+  // ---- painting your own availability ----
+  let drag = null;
+  function paintRect(d1, s1) {
+    const tag = d1 + ":" + s1;
+    if (drag.last === tag) return;
+    drag.last = tag;
+    mine = new Set(drag.snap);
+    const da = Math.min(drag.d0, d1), db = Math.max(drag.d0, d1);
+    const sa = Math.min(drag.s0, s1), sb = Math.max(drag.s0, s1);
+    for (let d = da; d <= db; d++) for (let s = sa; s <= sb; s++) {
+      if (drag.mode) mine.add(keys[d][s]); else mine.delete(keys[d][s]);
+    }
+    drawMine(); compute(); drawHeat();
+  }
+  mineGrid.addEventListener("pointerdown", e => {
+    const c = e.target.closest(".cell");
+    if (!c || !me || (e.pointerType === "mouse" && e.button !== 0)) return;
+    e.preventDefault();
+    const d0 = +c.dataset.d, s0 = +c.dataset.s;
+    drag = { d0, s0, mode: !mine.has(keys[d0][s0]), snap: new Set(mine), last: null };
+    mineGrid.setPointerCapture(e.pointerId);
+    paintRect(d0, s0);
+  });
+  mineGrid.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const c = el && el.closest ? el.closest(".cell") : null;
+    if (c && mineGrid.contains(c)) paintRect(+c.dataset.d, +c.dataset.s);
+  });
+  const endPaint = () => { if (!drag) return; drag = null; refreshGroup(); scheduleSave(); };
+  mineGrid.addEventListener("pointerup", endPaint);
+  mineGrid.addEventListener("pointercancel", endPaint);
+  $("#clearMine").onclick = () => { if (!me || !mine.size) return; mine = new Set(); drawMine(); refreshGroup(); scheduleSave(); };
+
+  // ---- saving ----
+  let saveTimer = null, saving = false, again = false, dirty = false;
+  function setStatus(text, kind, retry) {
+    statusEl.className = "status " + (kind || "");
+    statusEl.innerHTML = esc(text) + (retry ? `<button class="linkbtn" type="button" id="retrySave">Try again</button>` : "");
+    if (retry) $("#retrySave").onclick = () => save();
+  }
+  function scheduleSave() {
+    dirty = true;
+    setStatus("Saving...");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 600);
+  }
+  async function save() {
+    if (!me) return;
+    if (saving) { again = true; return; }
+    clearTimeout(saveTimer);
+    saving = true; again = false; dirty = false;
+    setStatus("Saving...");
+    const payload = { event: eventId, email: me.email, name: me.name, slots: [...mine].sort() };
+    try {
+      await api.save(payload);
+      hasSaved = true;
+      const row = { email: payload.email, name: payload.name, slots: payload.slots, updated: new Date().toISOString() };
+      const i = responses.findIndex(r => normEmail(r.email) === payload.email);
+      if (i >= 0) responses[i] = row; else responses.push(row);
+      if (!again && me) setStatus(SCRIPT_URL ? "All changes saved" : "Saved in this browser", "ok");
+    } catch (err) {
+      dirty = true;
+      setStatus("Couldn't save.", "bad", true);
+    } finally {
+      saving = false;
+      if (again) save();
+    }
+  }
+  window.addEventListener("beforeunload", e => { if (dirty || saving) { e.preventDefault(); e.returnValue = ""; } });
+
+  // ---- who is responding ----
+  function drawWho() {
+    if (me) {
+      who.innerHTML = `<div class="signed"><div>Responding as <strong>${esc(nameText(me))}</strong><span class="muted">${esc(me.email)}</span></div><button class="linkbtn" type="button" id="switchUser">Not you? Switch</button></div>`;
+      $("#switchUser").onclick = signOut;
+      return;
+    }
+    const saved = store.get(ME_KEY, {}) || {};
+    who.innerHTML = `<form class="signin" id="signin" novalidate>
+        <div><label class="lbl" for="sEmail">Your email</label><input id="sEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@university.edu" value="${esc(saved.email || "")}"></div>
+        <div><label class="lbl" for="sName">Name <span class="opt">optional, shown to the group</span></label><input id="sName" autocomplete="name" maxlength="80" placeholder="Sarah Lee" value="${esc(saved.name || "")}"></div>
+        <button class="btn primary" type="submit">Continue</button>
+        <p class="err" id="signErr" role="alert"></p>
+      </form>
+      <p class="hint">Your email is how this poll recognizes you. Enter the same address later to change your answers.${invited.length ? " This poll is limited to invited addresses." : ""}</p>`;
+    $("#signin").addEventListener("submit", e => {
+      e.preventDefault();
+      const msg = signIn(normEmail($("#sEmail").value), $("#sName").value.trim().slice(0, 80));
+      if (msg) $("#signErr").textContent = msg;
+    });
+  }
+  function signIn(email, name) {
+    if (!EMAIL_RE.test(email)) return "Enter a valid email address, like name@university.edu.";
+    if (invited.length && !invited.includes(email)) return "That address isn't on this poll's invite list. Use the address the organizer invited.";
+    const existing = responses.find(r => normEmail(r.email) === email);
+    me = { email, name: name || (existing && existing.name) || "" };
+    mine = new Set(existing ? (existing.slots || []) : []);
+    hasSaved = !!existing;
+    store.set(ME_KEY, { email, name: me.name });
+    minePanel.classList.remove("locked");
+    drawWho(); drawMine(); refreshGroup();
+    setStatus(existing ? "Loaded your saved times. Changes save automatically." : "Mark the times you can make. Changes save automatically.");
+    if (existing && name && name !== existing.name) scheduleSave();
+    return "";
+  }
+  async function signOut() {
+    if (dirty || saving) await save();
+    me = null; mine = new Set(); hasSaved = false;
+    minePanel.classList.add("locked");
+    drawWho(); drawMine(); refreshGroup(); setStatus("");
+  }
+
+  // ---- loading ----
+  async function load() {
+    try {
+      const data = await api.load(eventId);
+      responses = Array.isArray(data) ? data : [];
+      $("#loadErr").hidden = true;
+    } catch (err) {
+      $("#loadErr").hidden = false;
+    }
+    if (me) {
+      const ex = responses.find(r => normEmail(r.email) === me.email);
+      if (ex) {
+        hasSaved = true;
+        // signed in before responses arrived: pick up the saved times
+        if (!mine.size && !dirty && !saving) { mine = new Set(ex.slots || []); drawMine(); }
+      }
+    }
+    refreshGroup();
+  }
+  const refreshIfIdle = () => { if (document.visibilityState === "visible" && !drag && !saving && !dirty) load(); };
+  setInterval(refreshIfIdle, 45000);
+  document.addEventListener("visibilitychange", refreshIfIdle);
+
+  drawWho();
+  refreshGroup();
+  load();
+}
+
+const params = new URLSearchParams(location.search);
+if (params.get("e")) renderPoll(params.get("e")); else renderCreate();
+</script>
+</body>
+</html>
